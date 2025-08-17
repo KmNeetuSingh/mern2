@@ -1,38 +1,31 @@
 // middlewares/cors.js
-const cors = require('cors');
+const cors = require("cors");
 
-// ✅ Whitelisted origins
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://library-app-two-nu.vercel.app',
-  'https://library-app-git-main-neetsins-projects.vercel.app',
-  'https://library-nnsrlgfrc-neetsins-projects.vercel.app',
-  'https://library-app-2yo9.vercel.app',
-  'https://library-app-2yo9-git-main-neetsins-projects.vercel.app',
-  'https://library-app-2yo9-7cpnthqbi-neetsins-projects.vercel.app',
-  'https://mern2-7lj3.vercel.app', // ✅ add your latest frontend
-];
-
-// ✅ CORS Options
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (curl, Postman, etc.)
+    // Allow requests with no origin (like Postman or curl)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn(`🚨 CORS blocked request from origin: ${origin}`);
-      
-      // Fallback option: allow all in DEV mode
-      if (process.env.NODE_ENV !== 'production') {
-        callback(null, true); // ✅ don’t block in dev
-      } else {
-        callback(new Error('❌ Not allowed by CORS'));
-      }
+    // ✅ Allow all localhost for development
+    if (origin.startsWith("http://localhost")) {
+      return callback(null, true);
     }
+
+    // ✅ Allow ALL subdomains (any .vercel.app, .onrender.com, etc.)
+    if (
+      /^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin) ||   // any vercel subdomain
+      /^https:\/\/[a-z0-9-]+\.onrender\.com$/.test(origin)    // any render subdomain
+    ) {
+      return callback(null, true);
+    }
+
+    // ✅ You can add your future custom domain here if needed
+    // Example: if (origin === "https://mylibraryapp.com") return callback(null, true);
+
+    console.warn(`🚨 Blocked by CORS: ${origin}`);
+    return callback(new Error("❌ Not allowed by CORS"));
   },
-  credentials: true, // allow cookies / auth headers
+  credentials: true, // Allow cookies and auth headers
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
